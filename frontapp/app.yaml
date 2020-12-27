@@ -5,7 +5,7 @@ env: standard
 automatic_scaling:
   min_idle_instances: 1
   max_idle_instances: 1
-default_expiration: "1m"
+default_expiration: "2m"
 
 inbound_services:
 - warmup
