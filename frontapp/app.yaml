@@ -1,0 +1,13 @@
+service: sweden-crime-map
+runtime: python37
+instance_class: F4
+env: standard
+automatic_scaling:
+  min_idle_instances: 1
+  max_idle_instances: 1
+default_expiration: "1m"
+
+inbound_services:
+- warmup
+
+entrypoint: gunicorn -b 0.0.0.0:8080 main:server
