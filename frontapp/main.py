@@ -138,6 +138,7 @@ def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, hou
         dfff = dff
         hourclick=None
         typeclick=None
+        mapclick=None
     else:
         dfff=dff.copy()
         if mapclick is not None:
@@ -162,8 +163,10 @@ def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, hou
         Input("cities", "value"),
         Input("types_inc", "value"),
         Input("guns", "value"),
+        Input("replot-all", 'n_clicks'),
+
       ])
-def update_type_chart(dateidx, language, city, type_inc, gun):
+def update_type_chart(dateidx, language, city, type_inc, gun, replot):
     min_idx, max_idx=dateidx
     min_date, max_date = date_range[min_idx], date_range[max_idx]
     cities_loc = [city] if city != 'All' else cities
@@ -178,6 +181,7 @@ def update_type_chart(dateidx, language, city, type_inc, gun):
             & (df['incident_type'].isin(type_inc))
             & (df['gun_filter'].isin(gun))
              ].copy()
+
     dfff = dff
     dfff=dfff.groupby('type')[['id']].nunique().rename(columns={'id':'incident counts'}
                         ).reset_index().sort_values(ascending=False,by='incident counts').set_index('type')
@@ -194,6 +198,26 @@ def update_type_chart(dateidx, language, city, type_inc, gun):
     return fig
 
 
+@app.callback(
+    Output("type-chart", "clickData"),
+    [
+        Input("replot-all", 'n_clicks'),
+      ])
+def update_typechart_clicks(replot):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+        return None
+
+
+@app.callback(
+    Output("hour-chart", "clickData"),
+    [
+        Input("replot-all", 'n_clicks'),
+      ])
+def update_hourchart_clicks(replot):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+        return None
 
 @app.callback(
     Output("hour-chart", "figure"),
@@ -222,7 +246,6 @@ def update_hour_chart(dateidx, language, city, type_inc, gun, typeclick, replot)
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
         dfff = dff
-        typeclick=None
     else:
         dfff=dff.copy()
         if typeclick is not None:
