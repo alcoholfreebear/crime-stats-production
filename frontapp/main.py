@@ -1,4 +1,4 @@
-
+# this version has just the right amount of callbacks
 from google.cloud import storage
 from google.cloud import datastore
 from datetime import datetime
