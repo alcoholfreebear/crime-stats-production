@@ -73,7 +73,7 @@ def plot_mapbox(dateidx, language, city, type_inc, gun, hourclick, typeclick, re
              & (df['gun_filter'].isin(gun))
              ].copy()
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
         dfff = dff
     else:
         dfff = dff.copy()
@@ -134,7 +134,7 @@ def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, hou
             &(df['gun_filter'].isin(gun_l))
            ].copy()
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
         dfff = dff
         hourclick=None
         typeclick=None
@@ -163,10 +163,10 @@ def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, hou
         Input("cities", "value"),
         Input("types_inc", "value"),
         Input("guns", "value"),
+        Input("hour-chart", "clickData"),
         Input("replot-all", 'n_clicks'),
-
       ])
-def update_type_chart(dateidx, language, city, type_inc, gun, replot):
+def update_type_chart(dateidx, language, city, type_inc, gun, hourclick, replot):
     min_idx, max_idx=dateidx
     min_date, max_date = date_range[min_idx], date_range[max_idx]
     cities_loc = [city] if city != 'All' else cities
@@ -181,8 +181,13 @@ def update_type_chart(dateidx, language, city, type_inc, gun, replot):
             & (df['incident_type'].isin(type_inc))
             & (df['gun_filter'].isin(gun))
              ].copy()
-
-    dfff = dff
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+        dfff = dff
+    else:
+        dfff=dff.copy()
+        if hourclick is not None:
+            dfff=dfff[ (dff['hour'] == hourclick['points'][0]['label'])]
     dfff=dfff.groupby('type')[['id']].nunique().rename(columns={'id':'incident counts'}
                         ).reset_index().sort_values(ascending=False,by='incident counts').set_index('type')
 
@@ -202,10 +207,13 @@ def update_type_chart(dateidx, language, city, type_inc, gun, replot):
     Output("type-chart", "clickData"),
     [
         Input("replot-all", 'n_clicks'),
-      ])
-def update_typechart_clicks(replot):
+        Input("replot-type", 'n_clicks'),
+
+    ])
+def update_typechart_clicks(replot, replottype):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+    if ("replot-all" in changed_id and replot>0) or ("replot-type" in changed_id and replot>0) \
+            or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
         return None
 
 
@@ -213,10 +221,13 @@ def update_typechart_clicks(replot):
     Output("hour-chart", "clickData"),
     [
         Input("replot-all", 'n_clicks'),
-      ])
-def update_hourchart_clicks(replot):
+        Input("replot-hour", 'n_clicks'),
+
+    ])
+def update_hourchart_clicks(replot, replothour):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+    if ("replot-all" in changed_id and replot>0) or ("replot-hour" in changed_id and replothour>0) \
+            or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
         return None
 
 @app.callback(
@@ -244,7 +255,7 @@ def update_hour_chart(dateidx, language, city, type_inc, gun, typeclick, replot)
             & (df['gun_filter'].isin(gun))
              ].copy()
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
+    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
         dfff = dff
     else:
         dfff=dff.copy()
@@ -328,7 +339,7 @@ row_replot=html.Div([
 
     dbc.Col(html.Div([
         # replot button
-        dbc.Button('Reset chart-click selections', id='replot-all',
+        dbc.Button('Reset all click selections', id='replot-all',
                     #title='refresh charts with top level filter settings',
         style={'color':'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
                     outline=False, block=False,
@@ -367,7 +378,27 @@ row_charts=html.Div([
         dcc.Graph(id="hour-chart"),
         # chart 2 end
     ]), xl=6, style={"margin-bottom": "40px"})),
-    ])
+    ]),
+
+    dbc.Row([
+
+        dbc.Col(html.Div([
+            dbc.Button('Reset type chart clicks', id='replot-type',
+                       # title='refresh charts with top level filter settings',
+                       style={'color': 'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
+                       outline=False, block=False,
+                       className="mr-1",
+                       n_clicks=0) ]), xl=6, style={"margin-top": "0px"}),
+
+        dbc.Col(html.Div([
+            dbc.Button('Reset hour chart clicks', id='replot-hour',
+                       # title='refresh charts with top level filter settings',
+                       style={'color': 'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
+                       outline=False, block=False,
+                       className="mr-1",
+                       n_clicks=0)
+        ]), xl=6, style={"margin-bottom": "0px"}),
+    ]),
 ])
 
 row_map=html.Div([
