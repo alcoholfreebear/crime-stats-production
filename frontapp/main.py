@@ -339,7 +339,7 @@ row_replot=html.Div([
 
     dbc.Col(html.Div([
         # replot button
-        dbc.Button('Reset all chart click selections', id='replot-all',
+        dbc.Button('Reset all chart-click selections', id='replot-all',
                     #title='refresh charts with top level filter settings',
         style={'color':'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
                     outline=False, block=False,
