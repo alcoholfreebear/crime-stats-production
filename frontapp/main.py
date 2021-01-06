@@ -194,7 +194,7 @@ def update_type_chart(dateidx, language, city, type_inc, gun, hourclick, replot)
     fig = px.bar(dfff.head(25), y='incident counts', opacity=1)
     fig.update_xaxes(tickangle= 45, tickfont_size=10)
     fig.update_traces(marker_color='skyblue')
-    fig.update_layout(height=270, width=450, title='',
+    fig.update_layout(height=240, width=400, title='',
                       xaxis={'tickangle':45, 'tickfont_size':9, 'title':''},
                       yaxis={ 'title': '', 'tickfont_size':9},
                       plot_bgcolor='white',
@@ -264,12 +264,12 @@ def update_hour_chart(dateidx, language, city, type_inc, gun, typeclick, replot)
     dfff=dfff.groupby('hour')[['id']].nunique().rename(columns={'id':'incident counts'})
     fig = px.bar(dfff, y='incident counts', opacity=1)
     fig.update_traces(marker_color='skyblue')
-    fig.update_layout(height=270, width=450,
+    fig.update_layout(height=220, width=400,
                       xaxis={'tickangle':0,  'tickfont_size':9,'title':'hour of day'},
                       yaxis={'title': '', 'tickfont_size':9},
                       plot_bgcolor='white',
                       paper_bgcolor='white',
-                      margin={"r": 0, "t": 0, "l": 0, "b": 90})
+                      margin={"r": 0, "t": 0, "l": 0, "b": 60})
     return fig
 
 
