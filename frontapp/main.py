@@ -194,9 +194,9 @@ def update_type_chart(dateidx, language, city, type_inc, gun, hourclick, replot)
     fig = px.bar(dfff.head(25), y='incident counts', opacity=1)
     fig.update_xaxes(tickangle= 45, tickfont_size=10)
     fig.update_traces(marker_color='skyblue')
-    fig.update_layout(height=300, width=500, title='',
+    fig.update_layout(height=270, width=450, title='',
                       xaxis={'tickangle':45, 'tickfont_size':9, 'title':''},
-                      yaxis={ 'title': '', 'tickfont_size':10},
+                      yaxis={ 'title': '', 'tickfont_size':9},
                       plot_bgcolor='white',
                       paper_bgcolor='white',
                       margin={"r": 0, "t": 0, "l": 0, "b": 0})
@@ -264,9 +264,9 @@ def update_hour_chart(dateidx, language, city, type_inc, gun, typeclick, replot)
     dfff=dfff.groupby('hour')[['id']].nunique().rename(columns={'id':'incident counts'})
     fig = px.bar(dfff, y='incident counts', opacity=1)
     fig.update_traces(marker_color='skyblue')
-    fig.update_layout(height=300, width=500,
-                      xaxis={'tickangle':0,  'tickfont_size':10,'title':'hour of day'},
-                      yaxis={'title': '', 'tickfont_size':10},
+    fig.update_layout(height=270, width=450,
+                      xaxis={'tickangle':0,  'tickfont_size':9,'title':'hour of day'},
+                      yaxis={'title': '', 'tickfont_size':9},
                       plot_bgcolor='white',
                       paper_bgcolor='white',
                       margin={"r": 0, "t": 0, "l": 0, "b": 90})
@@ -345,7 +345,7 @@ row_replot=html.Div([
                     outline=False, block=False,
                     className="mr-1",
         n_clicks=0)
-    ]),  sm=4, style={"margin-top": "0px", "margin-bottom": "5px"}),
+    ]),  xs=4, style={"margin-top": "0px", "margin-bottom": "5px"}),
     ])
 ,
 
@@ -357,12 +357,12 @@ row_charts=html.Div([
     dbc.Row([
 
        dbc.Col(html.Div([
-            html.H6('Top 25 incident types'),
-        ]),  sm=6, style={"margin-top": "0px"}),
+            html.H6('Top 25 incident types and hourly counts'),
+        ]),  xs=12, style={"margin-top": "0px"}),
 
-        dbc.Col(html.Div([
-            html.H6('Hour of day occurrence'),
-        ]),  sm=6, style={"margin-bottom": "0px"}),
+        # dbc.Col(html.Div([
+        #     html.H6('Hour of day occurrence'),
+        # ]),  xs=6, style={"margin-bottom": "0px"}),
     ]),
     dbc.Row([
 
@@ -371,13 +371,13 @@ row_charts=html.Div([
         #chart 1 start
         dcc.Graph(id="type-chart"),
         #chart 1 end
-    ]),  sm=6, style={"margin-top": "40px"})),
+    ]),  xs=6, style={"margin-top": "40px"})),
 
     dcc.Loading(dbc.Col(html.Div([
         # chart 2 start
         dcc.Graph(id="hour-chart"),
         # chart 2 end
-    ]),  sm=6, style={"margin-bottom": "40px"})),
+    ]),  xs=6, style={"margin-bottom": "40px"})),
     ]),
 
     dbc.Row([
@@ -388,7 +388,7 @@ row_charts=html.Div([
                        style={'color': 'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
                        outline=False, block=False,
                        className="mr-1",
-                       n_clicks=0) ]),  sm=6, style={"margin-top": "0px"}),
+                       n_clicks=0) ]),  xs=6, style={"margin-top": "0px"}),
 
         dbc.Col(html.Div([
             dbc.Button('Reset hour chart clicks', id='replot-hour',
@@ -397,7 +397,7 @@ row_charts=html.Div([
                        outline=False, block=False,
                        className="mr-1",
                        n_clicks=0)
-        ]),  sm=6, style={"margin-bottom": "0px"}),
+        ]),  xs=6, style={"margin-bottom": "0px"}),
     ]),
 ])
 
@@ -408,7 +408,7 @@ row_map=html.Div([
                     [   #html.Div(id='main_graph_dummy', children=None, n_click=None),
                         dcc.Graph(id="main_graph")
                     ]
-                ),  sm=6),
+                ),  xs=6),
                 dbc.Col(html.Div(
                     [
                         dash_table.DataTable(
@@ -443,7 +443,7 @@ row_map=html.Div([
                         # fixed_columns={'headers': True, 'data': 1},
                         # fixed_rows={'headers': True, 'data': 0}
                         ),
-                    ]),  sm=6),
+                    ]),  xs=6),
             ]
         ),])
 
@@ -453,10 +453,10 @@ row_top = html.Div(
             [
                 dbc.Col(html.Div(
                     [
-                        html.H3(
-                            "Sweden Incidents Map Daily",
-                            style={"margin-bottom": "20px"},
-                        ),
+                        # html.H3(
+                        #     "Sweden Incidents Map Daily",
+                        #     style={"margin-bottom": "20px"},
+                        # ),
                         html.H6(
                             id='subtitle',
                             children=f"Crime and incidents reports from the swedish police API, last updated {last_updated}",
@@ -464,7 +464,7 @@ row_top = html.Div(
                         ),
 
                     ]
-                ),  sm=12),
+                ),  xs=12),
                 dbc.Col(html.Div(
                     [
                         dcc.Dropdown(
@@ -475,7 +475,7 @@ row_top = html.Div(
                             className="dcc_control",
                             style={"margin-bottom": "20px"}),
                     ]
-                ) , sm=2),
+                ) , xs=2),
                 dbc.Col(html.Div(
                     [html.H6(
                             id='dummy_text',
@@ -497,7 +497,7 @@ row_top = html.Div(
                         ),
 
                     ]
-                ),  sm=12, style={"margin-bottom": "20px"})
+                ),  xs=12, style={"margin-bottom": "20px"})
 
             ]
         ),
@@ -516,7 +516,7 @@ row_top = html.Div(
                         value="All",
                         className="dcc_control",
                         style={"margin-bottom": "20px"}
-                    ), ]),  sm=4),
+                    ), ]),  xs=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_type_text',
@@ -530,7 +530,7 @@ row_top = html.Div(
                     value="All",
                     className="dcc_control",
                     style={"margin-bottom": "10px"}
-                ), ]),  sm=4),
+                ), ]),  xs=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_gun_text',
@@ -544,7 +544,7 @@ row_top = html.Div(
                     value="All",
                     className="dcc_control",
                     style={"margin-bottom": "10px"}
-                ), ]),  sm=4)
+                ), ]),  xs=4)
         ]),
 
     ]
@@ -556,7 +556,7 @@ app.layout = html.Div(dbc.Container(
      row_charts,
      row_replot,
      dcc.Loading(row_map)],
-    className="p-5",
+    className="p-5"
 ))
 
 
