@@ -345,7 +345,7 @@ row_replot=html.Div([
                     outline=False, block=False,
                     className="mr-1",
         n_clicks=0)
-    ]), xl=4, style={"margin-top": "0px", "margin-bottom": "5px"}),
+    ]),  sm=4, style={"margin-top": "0px", "margin-bottom": "5px"}),
     ])
 ,
 
@@ -358,11 +358,11 @@ row_charts=html.Div([
 
        dbc.Col(html.Div([
             html.H6('Top 25 incident types'),
-        ]), xl=6, style={"margin-top": "0px"}),
+        ]),  sm=6, style={"margin-top": "0px"}),
 
         dbc.Col(html.Div([
             html.H6('Hour of day occurrence'),
-        ]), xl=6, style={"margin-bottom": "0px"}),
+        ]),  sm=6, style={"margin-bottom": "0px"}),
     ]),
     dbc.Row([
 
@@ -371,13 +371,13 @@ row_charts=html.Div([
         #chart 1 start
         dcc.Graph(id="type-chart"),
         #chart 1 end
-    ]), xl=6, style={"margin-top": "40px"})),
+    ]),  sm=6, style={"margin-top": "40px"})),
 
     dcc.Loading(dbc.Col(html.Div([
         # chart 2 start
         dcc.Graph(id="hour-chart"),
         # chart 2 end
-    ]), xl=6, style={"margin-bottom": "40px"})),
+    ]),  sm=6, style={"margin-bottom": "40px"})),
     ]),
 
     dbc.Row([
@@ -388,7 +388,7 @@ row_charts=html.Div([
                        style={'color': 'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
                        outline=False, block=False,
                        className="mr-1",
-                       n_clicks=0) ]), xl=6, style={"margin-top": "0px"}),
+                       n_clicks=0) ]),  sm=6, style={"margin-top": "0px"}),
 
         dbc.Col(html.Div([
             dbc.Button('Reset hour chart clicks', id='replot-hour',
@@ -397,7 +397,7 @@ row_charts=html.Div([
                        outline=False, block=False,
                        className="mr-1",
                        n_clicks=0)
-        ]), xl=6, style={"margin-bottom": "0px"}),
+        ]),  sm=6, style={"margin-bottom": "0px"}),
     ]),
 ])
 
@@ -408,7 +408,7 @@ row_map=html.Div([
                     [   #html.Div(id='main_graph_dummy', children=None, n_click=None),
                         dcc.Graph(id="main_graph")
                     ]
-                ), xl=6),
+                ),  sm=6),
                 dbc.Col(html.Div(
                     [
                         dash_table.DataTable(
@@ -443,7 +443,7 @@ row_map=html.Div([
                         # fixed_columns={'headers': True, 'data': 1},
                         # fixed_rows={'headers': True, 'data': 0}
                         ),
-                    ]), xl=6),
+                    ]),  sm=6),
             ]
         ),])
 
@@ -464,7 +464,7 @@ row_top = html.Div(
                         ),
 
                     ]
-                ), xl=12),
+                ),  sm=12),
                 dbc.Col(html.Div(
                     [
                         dcc.Dropdown(
@@ -475,7 +475,7 @@ row_top = html.Div(
                             className="dcc_control",
                             style={"margin-bottom": "20px"}),
                     ]
-                ) ,xl=2),
+                ) , sm=2),
                 dbc.Col(html.Div(
                     [html.H6(
                             id='dummy_text',
@@ -497,7 +497,7 @@ row_top = html.Div(
                         ),
 
                     ]
-                ), xl=12, style={"margin-bottom": "20px"})
+                ),  sm=12, style={"margin-bottom": "20px"})
 
             ]
         ),
@@ -516,7 +516,7 @@ row_top = html.Div(
                         value="All",
                         className="dcc_control",
                         style={"margin-bottom": "20px"}
-                    ), ]), xl=4),
+                    ), ]),  sm=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_type_text',
@@ -530,7 +530,7 @@ row_top = html.Div(
                     value="All",
                     className="dcc_control",
                     style={"margin-bottom": "10px"}
-                ), ]), xl=4),
+                ), ]),  sm=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_gun_text',
@@ -544,7 +544,7 @@ row_top = html.Div(
                     value="All",
                     className="dcc_control",
                     style={"margin-bottom": "10px"}
-                ), ]), xl=4)
+                ), ]),  sm=4)
         ]),
 
     ]
