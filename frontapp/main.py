@@ -204,8 +204,9 @@ key = client.key('key-value', 'mapbox')
 mapbox_access_token = client.get(key)['value']
 
 df=read_gcs()
-table_columns=['datetime', 'type', 'details']
+last_updated=df['date_requested'].max().strftime('%Y-%m-%d %H:%M')
 df=df[~df['city'].str.lower().str.strip().str.endswith(' län')]
+table_columns=['datetime', 'type', 'details']
 df['hour'] = pd.to_datetime(df['datetime']).dt.hour
 df['incident_type']=np.where((df['type']=='Trafikrelaterad')|(df['type']=='Traffic-related'), 'Traffic', 'Significant incidents')
 df['incident_type']=np.where((~df['incident_type'].isin(['Traffic']))&(
@@ -217,7 +218,6 @@ df['incident_type']=np.where((~df['incident_type'].isin(['Traffic', 'Summary']))
         |(df['type'].str.strip().str.lower().str.startswith('övrigt'))
         ), 'Other', df['incident_type'])
 df['gun_filter']=np.where(df['gun_filter']=='gun-related', 'Gun-related', 'Not gun-related')
-last_updated=df['date_requested'].max().strftime('%Y-%m-%d %H:%M')
 
 date_range_ms = pd.date_range(start=datetime(2020,10,1), end=datetime.today(),freq='MS')
 date_range = pd.date_range(start=datetime(2020,10,1), end=datetime.today()+pd.Timedelta(days=1))
@@ -433,7 +433,7 @@ row_top = html.Div(
                 [
                     html.H6(
                         id='foot-note',
-                        children=f"* significant insidents exclude 'traffic', 'summary' and 'other' incident types. ",
+                        children=f"* Significant insidents exclude 'Traffic', 'Summary' and 'Other' incident types. ",
                         style={"margin-bottom": "20px"},
                     ),
 
