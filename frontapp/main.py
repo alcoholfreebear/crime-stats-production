@@ -1,4 +1,3 @@
-# this version has just the right amount of callbacks
 from google.cloud import storage
 from google.cloud import datastore
 from datetime import datetime
@@ -28,11 +27,14 @@ def get_idx_by_value(ddict, val):
     return [k for k in ddict.keys() if ddict[k]==val ][0]
 
 def get_options(arr):
+    if 'All' not in arr:
+        arr=['All']+arr
     return [{"label": x, "value": x} for x in arr]
 
 def get_map_agg(df, city:str=None):
     if city!='All':
-        centering = {'lat': city_coord['gps_lat'][city], 'lon':city_coord['gps_lon'][city]}
+        dfc=df[df['city']==city].copy().iloc[0]
+        centering = {'lat': dfc.get('gps_lat'), 'lon': dfc.get('gps_lon')}
     else:
         centering={'lat': 60, 'lon': 18}
     df_plot = df.groupby(['osm_lat', 'osm_lon', 'city'], as_index=False)[['id']].count().rename(
@@ -44,7 +46,6 @@ def get_map_agg(df, city:str=None):
 @app.callback(
     [Output("main_graph", "figure"),
      Output("main_graph", "clickData"),
-
      ],
     [
         Input('datetime_RangeSlider', "value"),
@@ -52,13 +53,10 @@ def get_map_agg(df, city:str=None):
         Input("cities", "value"),
         Input("types_inc", "value"),
         Input("guns", "value"),
-        Input("hour-chart", "clickData"),
-        Input("type-chart", "clickData"),
-        Input("replot-all", 'n_clicks'),
     ],
     #[State("lock_selector", "value"), State("main_graph", "relayoutData")],
 )
-def plot_mapbox(dateidx, language, city, type_inc, gun, hourclick, typeclick, replot):
+def plot_mapbox(dateidx, language, city, type_inc, gun):
     min_idx, max_idx = dateidx
     min_date, max_date = date_range[min_idx], date_range[max_idx]
     cities_loc = [city] if city != 'All' else cities
@@ -72,17 +70,7 @@ def plot_mapbox(dateidx, language, city, type_inc, gun, hourclick, typeclick, re
              & (df['incident_type'].isin(type_inc))
              & (df['gun_filter'].isin(gun))
              ].copy()
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
-        dfff = dff
-    else:
-        dfff = dff.copy()
-        if hourclick is not None:
-            dfff = dfff[(dff['hour'] == hourclick['points'][0]['label'])]
-        if typeclick is not None:
-            dfff = dfff[(dff['type'] == typeclick['points'][0]['label'])]
-
-    map_agg, centering =get_map_agg(df=dfff, city=city)
+    map_agg, centering =get_map_agg(df=dff, city=city)
     zoom=4.5 if city=='All' else 10
     px.set_mapbox_access_token(token=mapbox_access_token)
     fig = px.scatter_mapbox(map_agg, lat='lat', lon='lon', center=centering,
@@ -91,7 +79,7 @@ def plot_mapbox(dateidx, language, city, type_inc, gun, hourclick, typeclick, re
                             size='marker_size'  # size=np.ones(len(df_plot))
                             , size_max=20, zoom=zoom, hover_name='city',
                             hover_data={'city':False, 'incident counts':True, 'marker_size':False},
-                            mapbox_style='light', opacity=0.6,
+                            mapbox_style='light', opacity=0.65,
                             title='Accumulative incidents reported to police')
     fig.update_traces(marker_color='skyblue')
     fig.update_layout(height=500, width=500, margin={"r": 0, "t": 0, "l": 0, "b": 0})
@@ -101,9 +89,7 @@ def plot_mapbox(dateidx, language, city, type_inc, gun, hourclick, typeclick, re
 
 @app.callback(
     [Output("main_table", "data"),
-     Output("main_table", "columns"),
-     # Output('text-top-filter', 'children'),
-     Output('text-show-result', 'children')
+     Output("main_table", "columns")
      ],
     [
         Input('datetime_RangeSlider', "value"),
@@ -112,49 +98,35 @@ def plot_mapbox(dateidx, language, city, type_inc, gun, hourclick, typeclick, re
         Input("types_inc", "value"),
         Input("guns", "value"),
         Input("main_graph", "clickData"),
-        Input("hour-chart", "clickData"),
-        Input("type-chart", "clickData"),
-        Input("replot-all", 'n_clicks'),
     ],
     # [State("main_graph", "clickData"),
     #  State("hour-chart", "clickData"),
     #  State("type-chart", "clickData")     ],
 )
-def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, hourclick, typeclick, replot):
+def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick):
+    def return_response_table(dff):
+        data = dff[table_columns]
+        data = data.to_dict('records')
+        columns = [{'id': c, 'name': c} for c in table_columns]
+        return data, columns
+
     min_idx, max_idx=dateidx
     min_date, max_date = date_range[min_idx], date_range[max_idx]
     cities_loc = [city] if city != 'All' else cities
-    type_inc_l = [type_inc] if type_inc != 'All' else types_inc
-    gun_l = [gun] if gun != 'All' else gun_filters
+    type_inc = [type_inc] if type_inc != 'All' else types_inc
+    gun = [gun] if gun != 'All' else gun_filters
     dff=df[(df['datetime']<=max_date)
             &(df['datetime']>=min_date)
             &(df['city'].isin(cities_loc))
             &(df['language']==language)
-            &(df['incident_type'].isin(type_inc_l))
-            &(df['gun_filter'].isin(gun_l))
+            &(df['incident_type'].isin(type_inc))
+            &(df['gun_filter'].isin(gun))
            ].copy()
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
-        dfff = dff
-        hourclick=None
-        typeclick=None
-        mapclick=None
+    if mapclick is not None:
+        dfff=dff[ (dff['osm_lon'] == mapclick['points'][0]['lon'])&(dff['osm_lat'] == mapclick['points'][0]['lat'])]
     else:
-        dfff=dff.copy()
-        if mapclick is not None:
-            dfff=dfff[ (dff['osm_lon'] == mapclick['points'][0]['lon'])&(dff['osm_lat'] == mapclick['points'][0]['lat'])]
-        if hourclick is not None:
-            dfff=dfff[ (dff['hour'] == hourclick['points'][0]['label'])]
-        if typeclick is not None:
-            dfff=dfff[ (dff['type'] == typeclick['points'][0]['label'])]
-    data = dfff[table_columns]
-    data = data.to_dict('records')
-    columns = [{'id': c, 'name': c} for c in table_columns]
-    hour_str='any' if hourclick is None else str(hourclick['points'][0]['label'])
-    type_str='any' if typeclick is None else str(typeclick['points'][0]['label'])
-    top_text=f'Top filters: city={city}, traffic_involvement={type_inc}, gun_involvement={gun}. '
-    show_text=f'Showing {type_str} incident at {hour_str} hours.'
-    return data, columns,top_text+show_text
+        dfff=dff
+    return return_response_table(dfff)
 
 @app.callback(
     Output("type-chart", "figure"),
@@ -163,10 +135,8 @@ def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, hou
         Input("cities", "value"),
         Input("types_inc", "value"),
         Input("guns", "value"),
-        Input("hour-chart", "clickData"),
-        Input("replot-all", 'n_clicks'),
       ])
-def update_type_chart(dateidx, language, city, type_inc, gun, hourclick, replot):
+def update_type_chart(dateidx, language, city, type_inc, gun):
     min_idx, max_idx=dateidx
     min_date, max_date = date_range[min_idx], date_range[max_idx]
     cities_loc = [city] if city != 'All' else cities
@@ -180,22 +150,14 @@ def update_type_chart(dateidx, language, city, type_inc, gun, hourclick, replot)
             & (df['language'] == language)
             & (df['incident_type'].isin(type_inc))
             & (df['gun_filter'].isin(gun))
-             ].copy()
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
-        dfff = dff
-    else:
-        dfff=dff.copy()
-        if hourclick is not None:
-            dfff=dfff[ (dff['hour'] == hourclick['points'][0]['label'])]
-    dfff=dfff.groupby('type')[['id']].nunique().rename(columns={'id':'incident counts'}
+             ].copy().groupby('type')[['id']].nunique().rename(columns={'id':'incident counts'}
                         ).reset_index().sort_values(ascending=False,by='incident counts').set_index('type')
 
-    fig = px.bar(dfff.head(25), y='incident counts', opacity=1)
+    fig = px.bar(dff.head(20), y='incident counts', opacity=0.8)
     fig.update_xaxes(tickangle= 45, tickfont_size=10)
     fig.update_traces(marker_color='skyblue')
     fig.update_layout(height=240, width=400, title='',
-                      xaxis={'tickangle':45, 'tickfont_size':9, 'title':''},
+                      xaxis={'tickangle':45, 'tickfont_size':8, 'title':''},
                       yaxis={ 'title': '', 'tickfont_size':9},
                       plot_bgcolor='white',
                       paper_bgcolor='white',
@@ -204,43 +166,14 @@ def update_type_chart(dateidx, language, city, type_inc, gun, hourclick, replot)
 
 
 @app.callback(
-    Output("type-chart", "clickData"),
-    [
-        Input("replot-all", 'n_clicks'),
-        Input("replot-type", 'n_clicks'),
-
-    ])
-def update_typechart_clicks(replot, replottype):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or ("replot-type" in changed_id and replot>0) \
-            or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
-        return None
-
-
-@app.callback(
-    Output("hour-chart", "clickData"),
-    [
-        Input("replot-all", 'n_clicks'),
-        Input("replot-hour", 'n_clicks'),
-
-    ])
-def update_hourchart_clicks(replot, replothour):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or ("replot-hour" in changed_id and replothour>0) \
-            or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
-        return None
-
-@app.callback(
     Output("hour-chart", "figure"),
     [   Input('datetime_RangeSlider', "value"),
         Input("languages", "value"),
         Input("cities", "value"),
         Input("types_inc", "value"),
         Input("guns", "value"),
-        Input("type-chart", "clickData"),
-        Input("replot-all", 'n_clicks'),
       ])
-def update_hour_chart(dateidx, language, city, type_inc, gun, typeclick, replot):
+def update_hour_chart(dateidx, language, city, type_inc, gun):
     min_idx, max_idx=dateidx
     min_date, max_date = date_range[min_idx], date_range[max_idx]
     cities_loc = [city] if city != 'All' else cities
@@ -254,36 +187,36 @@ def update_hour_chart(dateidx, language, city, type_inc, gun, typeclick, replot)
             & (df['incident_type'].isin(type_inc))
             & (df['gun_filter'].isin(gun))
              ].copy()
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if ("replot-all" in changed_id and replot>0) or "languages" in changed_id or "cities" in changed_id or "types_inc" in changed_id or "guns" in changed_id:
-        dfff = dff
-    else:
-        dfff=dff.copy()
-        if typeclick is not None:
-            dfff=dfff[ (dff['type'] == typeclick['points'][0]['label'])]
-    dfff=dfff.groupby('hour')[['id']].nunique().rename(columns={'id':'incident counts'})
-    fig = px.bar(dfff, y='incident counts', opacity=1)
+    dff=dff.groupby('hour')[['id']].nunique().rename(columns={'id':'incident counts'})
+
+    fig = px.bar(dff, y='incident counts',opacity=0.8)
     fig.update_traces(marker_color='skyblue')
-    fig.update_layout(height=220, width=400,
-                      xaxis={'tickangle':0,  'tickfont_size':9,'title':'hour of day'},
-                      yaxis={'title': '', 'tickfont_size':9},
+    fig.update_layout(height=220, width=400, title='',
+                      xaxis={'tickangle':45, 'tickfont_size':8, 'title':'hour of day'},
+                      yaxis={ 'title': '', 'tickfont_size':9},
                       plot_bgcolor='white',
                       paper_bgcolor='white',
-                      margin={"r": 0, "t": 0, "l": 0, "b": 60})
+                      margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
-
-
 
 client = datastore.Client()
 key = client.key('key-value', 'mapbox')
 mapbox_access_token = client.get(key)['value']
 
 df=read_gcs()
-city_coord=df.groupby('city')[['gps_lon', 'gps_lat']].first().to_dict() #coordinates
 table_columns=['datetime', 'type', 'details']
+df=df[~df['city'].str.lower().str.strip().str.endswith(' län')]
 df['hour'] = pd.to_datetime(df['datetime']).dt.hour
-df['incident_type']=np.where((df['type']=='Trafikrelaterad')|(df['type']=='Traffic-related'), 'traffic', 'non-traffic')
-df['gun_filter']=np.where(df['gun_filter']=='gun-related', 'gun-related', 'not gun-related')
+df['incident_type']=np.where((df['type']=='Trafikrelaterad')|(df['type']=='Traffic-related'), 'Traffic', 'Significant incidents')
+df['incident_type']=np.where((~df['incident_type'].isin(['Traffic']))&(
+        (df['type'].str.strip().str.lower().str.startswith('summary'))
+        |(df['type'].str.strip().str.lower().str.startswith('sammanfattning'))
+        ), 'Summary', df['incident_type'])
+df['incident_type']=np.where((~df['incident_type'].isin(['Traffic', 'Summary']))&(
+        (df['type'].str.strip().str.lower().str.startswith('other'))
+        |(df['type'].str.strip().str.lower().str.startswith('övrigt'))
+        ), 'Other', df['incident_type'])
+df['gun_filter']=np.where(df['gun_filter']=='gun-related', 'Gun-related', 'Not gun-related')
 last_updated=df['date_requested'].max().strftime('%Y-%m-%d %H:%M')
 
 date_range_ms = pd.date_range(start=datetime(2020,10,1), end=datetime.today(),freq='MS')
@@ -294,7 +227,7 @@ date_marks={get_idx_by_value(date_range, x): {'label':x.strftime('%Y-%m-%d')} fo
 
 # control types
 cities = ['All']+sorted(df['city'].unique())
-types_inc = ['All']+sorted(df['incident_type'].unique())
+types_inc = ['All']+['Significant incidents', 'Traffic','Summary', 'Other']#sorted(df['incident_type'].unique())
 types = ['All']+sorted(df['type'].unique())
 languages = sorted(df['language'].unique())
 gun_filters = ['All']+sorted(df['gun_filter'].unique())
@@ -306,50 +239,22 @@ type_options=get_options(types)
 type_inc_options=get_options(types_inc)
 gun_options=get_options(gun_filters)
 
-
-
-
-row_replot=html.Div([
-
-    dbc.Row([
-        dbc.Col(html.Div(
-            [html.H6(
-                id='text-chose-click',
-                children="Click in the above charts to refine incident type and hour.",
-                className="control_label", )]
-        ))
-    ]),
-    # dbc.Row([
-    #     dbc.Col(html.Div(
-    #         [html.H6(
-    #             id='text-top-filter',
-    #             children="Use top level filters to select.",
-    #             className="control_label", )]
-    #     ))
-    # ]),
-    dbc.Row([
-        dbc.Col(html.Div(
-            [html.H6(
-                id='text-show-result',
-                children="Showing results",
-                className="control_label", )]
-        ))
-    ]),
-    dbc.Row([
-
-    dbc.Col(html.Div([
-        # replot button
-        dbc.Button('Reset all chart-click selections', id='replot-all',
-                    #title='refresh charts with top level filter settings',
-        style={'color':'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
-                    outline=False, block=False,
-                    className="mr-1",
-        n_clicks=0)
-    ]),  xs=4, style={"margin-top": "0px", "margin-bottom": "5px"}),
-    ])
-,
-
-    ])
+#
+# row_charts=html.Div([dbc.Row([
+#
+#     dbc.Col(html.Div([
+#         # chart 2 start
+#         dcc.Graph(id="hour-chart"),
+#         # chart 2 end
+#     ]), md=6, style={"margin-bottom": "40px"}),
+#
+#     dbc.Col(html.Div([
+#         #chart 1 start
+#         dcc.Graph(id="type-chart"),
+#         #chart 1 end
+#     ]), md=6, style={"margin-top": "40px"}),
+#     ])
+# ])
 
 
 row_charts=html.Div([
@@ -358,11 +263,7 @@ row_charts=html.Div([
 
        dbc.Col(html.Div([
             html.H6('Top 25 incident types and hourly counts'),
-        ]),  xs=12, style={"margin-top": "0px"}),
-
-        # dbc.Col(html.Div([
-        #     html.H6('Hour of day occurrence'),
-        # ]),  xs=6, style={"margin-bottom": "0px"}),
+        ]),   md=12, style={"margin-top": "0px"}),
     ]),
     dbc.Row([
 
@@ -371,35 +272,16 @@ row_charts=html.Div([
         #chart 1 start
         dcc.Graph(id="type-chart"),
         #chart 1 end
-    ]),  xs=6, style={"margin-top": "40px"})),
+    ]),   md=6, style={"margin-top": "40px"})),
 
     dcc.Loading(dbc.Col(html.Div([
         # chart 2 start
         dcc.Graph(id="hour-chart"),
         # chart 2 end
-    ]),  xs=6, style={"margin-bottom": "40px"})),
-    ]),
-
-    dbc.Row([
-
-        dbc.Col(html.Div([
-            dbc.Button('Reset type chart clicks', id='replot-type',
-                       # title='refresh charts with top level filter settings',
-                       style={'color': 'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
-                       outline=False, block=False,
-                       className="mr-1",
-                       n_clicks=0) ]),  xs=6, style={"margin-top": "0px"}),
-
-        dbc.Col(html.Div([
-            dbc.Button('Reset hour chart clicks', id='replot-hour',
-                       # title='refresh charts with top level filter settings',
-                       style={'color': 'deepskyblue', 'background-color': 'rgb(256,256,256)', 'border': '0px'},
-                       outline=False, block=False,
-                       className="mr-1",
-                       n_clicks=0)
-        ]),  xs=6, style={"margin-bottom": "0px"}),
+    ]),   md=6, style={"margin-bottom": "40px"})),
     ]),
 ])
+
 
 row_map=html.Div([
         dbc.Row(
@@ -408,7 +290,7 @@ row_map=html.Div([
                     [   #html.Div(id='main_graph_dummy', children=None, n_click=None),
                         dcc.Graph(id="main_graph")
                     ]
-                ),  xs=6),
+                ), md=6),
                 dbc.Col(html.Div(
                     [
                         dash_table.DataTable(
@@ -443,7 +325,7 @@ row_map=html.Div([
                         # fixed_columns={'headers': True, 'data': 1},
                         # fixed_rows={'headers': True, 'data': 0}
                         ),
-                    ]),  xs=6),
+                    ]), md=6),
             ]
         ),])
 
@@ -453,10 +335,10 @@ row_top = html.Div(
             [
                 dbc.Col(html.Div(
                     [
-                        # html.H3(
-                        #     "Sweden Incidents Map Daily",
-                        #     style={"margin-bottom": "20px"},
-                        # ),
+                        html.H3(
+                            "Sweden Incidents Map Daily",
+                            style={"margin-bottom": "20px"},
+                        ),
                         html.H6(
                             id='subtitle',
                             children=f"Crime and incidents reports from the swedish police API, last updated {last_updated}",
@@ -464,7 +346,7 @@ row_top = html.Div(
                         ),
 
                     ]
-                ),  xs=12),
+                ), md=12),
                 dbc.Col(html.Div(
                     [
                         dcc.Dropdown(
@@ -475,7 +357,7 @@ row_top = html.Div(
                             className="dcc_control",
                             style={"margin-bottom": "20px"}),
                     ]
-                ) , xs=2),
+                ) ,md=2),
                 dbc.Col(html.Div(
                     [html.H6(
                             id='dummy_text',
@@ -497,7 +379,7 @@ row_top = html.Div(
                         ),
 
                     ]
-                ),  xs=12, style={"margin-bottom": "20px"})
+                ), md=12, style={"margin-bottom": "20px"})
 
             ]
         ),
@@ -515,22 +397,22 @@ row_top = html.Div(
                         multi=False,
                         value="All",
                         className="dcc_control",
-                        style={"margin-bottom": "20px"}
-                    ), ]),  xs=4),
+                        style={"margin-bottom": "5px"}
+                    ), ]), md=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_type_text',
-                    children="Traffic Involvement",
+                    children="Incident Type",
                     className="control_label",
                 ),
                 dcc.Dropdown(
                     id="types_inc",
                     options=type_inc_options,
                     multi=False,
-                    value="All",
+                    value="Significant incidents",
                     className="dcc_control",
-                    style={"margin-bottom": "10px"}
-                ), ]),  xs=4),
+                    style={"margin-bottom": "5px"}
+                ), ]), md=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_gun_text',
@@ -543,21 +425,33 @@ row_top = html.Div(
                     multi=False,
                     value="All",
                     className="dcc_control",
-                    style={"margin-bottom": "10px"}
-                ), ]),  xs=4)
+                    style={"margin-bottom": "5px"}
+                ), ]), md=4)
         ]),
+        dbc.Row([
+            dbc.Col(html.Div(
+                [
+                    html.H6(
+                        id='foot-note',
+                        children=f"* significant insidents exclude 'traffic', 'summary' and 'other' incident types. ",
+                        style={"margin-bottom": "20px"},
+                    ),
+
+                ]
+            ), md=12),
+        ])
 
     ]
 )
 
 app.layout = html.Div(dbc.Container(
-    [
-     row_top,
-     row_charts,
-     row_replot,
-     dcc.Loading(row_map)],
-    className="p-5"
-))
+    [row_top,
+     dcc.Loading(row_map),
+     dcc.Loading(row_charts),
+     ],
+    className="p-5",
+),
+)
 
 
 # Main
