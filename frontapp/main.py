@@ -27,7 +27,7 @@ def get_idx_by_value(ddict, val):
     return [k for k in ddict.keys() if ddict[k]==val ][0]
 
 def get_options(arr):
-    if 'All' not in arr:
+    if 'All' not in arr and ('EN' not in arr or 'SV' not in arr):
         arr=['All']+arr
     return [{"label": x, "value": x} for x in arr]
 
