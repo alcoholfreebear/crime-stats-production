@@ -13,4 +13,4 @@ default_expiration: "3h"
 inbound_services:
 - warmup
 
-entrypoint: gunicorn -b 0.0.0.0:8080 -w 4 main:server
+entrypoint: gunicorn -b 0.0.0.0:8080 main:server
