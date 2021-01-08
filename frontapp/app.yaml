@@ -8,7 +8,7 @@ automatic_scaling:
   target_cpu_utilization: 0.85
   max_concurrent_requests: 80
   max_pending_latency: 6s
-default_expiration: "3h"
+default_expiration: "1m"
 
 inbound_services:
 - warmup
