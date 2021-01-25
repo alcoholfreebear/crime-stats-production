@@ -1,5 +1,5 @@
 from google.cloud import storage
-from google.cloud import datastore
+# from google.cloud import datastore
 from datetime import datetime
 import plotly.express as px
 import pandas as pd
@@ -19,9 +19,16 @@ def read_gcs()->pd.DataFrame:
     read dataframe from parquet file in gcs
     :return:
     """
-    bucket_name='crime-stat-app'
+    bucket_name='crime-stat-app-us'
     file_path=f'gs://{bucket_name}/front/dashboard.parquet'
     return pd.read_parquet(file_path).sort_values(by='datetime', ascending=False)
+
+def get_token():
+    client = storage.Client()
+    bucket_name = 'crime-stat-app-us'
+    bucket = client.get_bucket(bucket_name)
+    blob = bucket.get_blob('mapbox.txt')
+    return blob.download_as_string().decode('utf-8').strip()
 
 def get_idx_by_value(ddict, val):
     return [k for k in ddict.keys() if ddict[k]==val ][0]
@@ -199,10 +206,10 @@ def update_hour_chart(dateidx, language, city, type_inc, gun):
                       margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
 
-client = datastore.Client()
-key = client.key('key-value', 'mapbox')
-mapbox_access_token = client.get(key)['value']
-
+# client = datastore.Client()
+# key = client.key('key-value', 'mapbox')
+# mapbox_access_token = client.get(key)['value']
+mapbox_access_token=get_token()
 df=read_gcs()
 last_updated=df['date_requested'].max().strftime('%Y-%m-%d %H:%M')
 df=df[~df['city'].str.lower().str.strip().str.endswith(' län')]
