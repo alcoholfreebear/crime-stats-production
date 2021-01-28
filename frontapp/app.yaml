@@ -14,4 +14,10 @@ default_expiration: "1m"
 inbound_services:
 - warmup
 
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+    redirect_http_response_code: 301
+
 entrypoint: gunicorn -b 0.0.0.0:8080 main:server
