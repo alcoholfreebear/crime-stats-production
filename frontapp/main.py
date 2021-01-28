@@ -163,9 +163,9 @@ def update_type_chart(dateidx, language, city, type_inc, gun):
     fig = px.bar(dff.head(20), y='incident counts', opacity=0.8)
     fig.update_xaxes(tickangle= 45, tickfont_size=10)
     fig.update_traces(marker_color='skyblue')
-    fig.update_layout(height=240, width=400, title='',
-                      xaxis={'tickangle':45, 'tickfont_size':8, 'title':''},
-                      yaxis={ 'title': '', 'tickfont_size':9},
+    fig.update_layout(height=300, width=500, title='',
+                      xaxis={'tickangle':45, 'tickfont_size':10, 'title':''},
+                      yaxis={ 'title': '', 'tickfont_size':11},
                       plot_bgcolor='white',
                       paper_bgcolor='white',
                       margin={"r": 0, "t": 0, "l": 0, "b": 0})
@@ -198,9 +198,9 @@ def update_hour_chart(dateidx, language, city, type_inc, gun):
 
     fig = px.bar(dff, y='incident counts',opacity=0.8)
     fig.update_traces(marker_color='skyblue')
-    fig.update_layout(height=220, width=400, title='',
-                      xaxis={'tickangle':45, 'tickfont_size':8, 'title':'hour of day'},
-                      yaxis={ 'title': '', 'tickfont_size':9},
+    fig.update_layout(height=280, width=500, title='',
+                      xaxis={'tickangle':45, 'tickfont_size':10, 'title':'hour of day'},
+                      yaxis={ 'title': '', 'tickfont_size':11},
                       plot_bgcolor='white',
                       paper_bgcolor='white',
                       margin={"r": 0, "t": 0, "l": 0, "b": 0})
@@ -253,13 +253,13 @@ gun_options=get_options(gun_filters)
 #         # chart 2 start
 #         dcc.Graph(id="hour-chart"),
 #         # chart 2 end
-#     ]), md=6, style={"margin-bottom": "40px"}),
+#     ]), lg=6, style={"margin-bottom": "40px"}),
 #
 #     dbc.Col(html.Div([
 #         #chart 1 start
 #         dcc.Graph(id="type-chart"),
 #         #chart 1 end
-#     ]), md=6, style={"margin-top": "40px"}),
+#     ]), lg=6, style={"margin-top": "40px"}),
 #     ])
 # ])
 
@@ -270,7 +270,7 @@ row_charts=html.Div([
 
        dbc.Col(html.Div([
             html.H6('Top 25 incident types and hourly counts'),
-        ]),   md=12, style={"margin-top": "0px"}),
+        ]),   lg=12, style={"margin-top": "20px"}),
     ]),
     dbc.Row([
 
@@ -279,13 +279,13 @@ row_charts=html.Div([
         #chart 1 start
         dcc.Graph(id="type-chart"),
         #chart 1 end
-    ]),   md=6, style={"margin-top": "40px"})),
+    ]),   lg=6, style={"margin-top": "40px"})),
 
     dcc.Loading(dbc.Col(html.Div([
         # chart 2 start
         dcc.Graph(id="hour-chart"),
         # chart 2 end
-    ]),   md=6, style={"margin-bottom": "40px"})),
+    ]),   lg=6, style={"margin-bottom": "40px"})),
     ]),
 ])
 
@@ -297,7 +297,7 @@ row_map=html.Div([
                     [   #html.Div(id='main_graph_dummy', children=None, n_click=None),
                         dcc.Graph(id="main_graph")
                     ]
-                ), md=6),
+                ), lg=6),
                 dbc.Col(html.Div(
                     [
                         dash_table.DataTable(
@@ -332,7 +332,7 @@ row_map=html.Div([
                         # fixed_columns={'headers': True, 'data': 1},
                         # fixed_rows={'headers': True, 'data': 0}
                         ),
-                    ]), md=6),
+                    ]), lg=6),
             ]
         ),])
 
@@ -347,13 +347,22 @@ row_top = html.Div(
                             style={"margin-bottom": "20px"},
                         ),
                         html.H6(
+                            id='subtitle-timestamp',
+                            children=f"""
+                            Crime and incidents reports from the swedish police API, last updated {last_updated}.
+                            """,
+                            style={"margin-bottom": "0px"},
+                        ),
+                        html.H6(
                             id='subtitle',
-                            children=f"Crime and incidents reports from the swedish police API, last updated {last_updated}",
+                            children=f"""
+                            Note that not all the reported incidents correspond to actual crimes. 
+                            """,
                             style={"margin-bottom": "20px"},
                         ),
 
                     ]
-                ), md=12),
+                ), lg=12),
                 dbc.Col(html.Div(
                     [
                         dcc.Dropdown(
@@ -364,7 +373,7 @@ row_top = html.Div(
                             className="dcc_control",
                             style={"margin-bottom": "20px"}),
                     ]
-                ) ,md=2),
+                ) ,lg=2),
                 dbc.Col(html.Div(
                     [html.H6(
                             id='dummy_text',
@@ -386,7 +395,7 @@ row_top = html.Div(
                         ),
 
                     ]
-                ), md=12, style={"margin-bottom": "20px"})
+                ), lg=12, style={"margin-bottom": "20px"})
 
             ]
         ),
@@ -405,7 +414,7 @@ row_top = html.Div(
                         value="All",
                         className="dcc_control",
                         style={"margin-bottom": "5px"}
-                    ), ]), md=4),
+                    ), ]), lg=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_type_text',
@@ -419,7 +428,7 @@ row_top = html.Div(
                     value="Significant incidents",
                     className="dcc_control",
                     style={"margin-bottom": "5px"}
-                ), ]), md=4),
+                ), ]), lg=4),
             dbc.Col(html.Div([
                 html.H6(
                     id='choose_gun_text',
@@ -433,7 +442,7 @@ row_top = html.Div(
                     value="All",
                     className="dcc_control",
                     style={"margin-bottom": "5px"}
-                ), ]), md=4)
+                ), ]), lg=4)
         ]),
         dbc.Row([
             dbc.Col(html.Div(
@@ -445,7 +454,7 @@ row_top = html.Div(
                     ),
 
                 ]
-            ), md=12),
+            ), lg=12),
         ])
 
     ]
