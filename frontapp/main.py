@@ -34,7 +34,7 @@ def get_idx_by_value(ddict, val):
     return [k for k in ddict.keys() if ddict[k]==val ][0]
 
 def get_options(arr):
-    if 'All' not in arr and ('EN' not in arr or 'SV' not in arr):
+    if type(arr[0])==str and 'All' not in arr and ('EN' not in arr or 'SV' not in arr):
         arr=['All']+arr
     return [{"label": x, "value": x} for x in arr]
 
@@ -53,6 +53,7 @@ def get_map_agg(df, city:str=None):
 @app.callback(
     [Output("main_graph", "figure"),
      Output("main_graph", "clickData"),
+     Output("text_total_rows", "children")
      ],
     [
         Input('datetime_RangeSlider', "value"),
@@ -90,7 +91,10 @@ def plot_mapbox(dateidx, language, city, type_inc, gun):
                             title='Accumulative incidents reported to police')
     fig.update_traces(marker_color='skyblue')
     fig.update_layout(height=500, width=500, margin={"r": 0, "t": 0, "l": 0, "b": 0})
-    return fig, None
+    text_incidents = f"""
+                    Total {len(dff)} incidents reported for current filter selections. 
+                    """
+    return fig, None, text_incidents
 
 
 
@@ -105,12 +109,14 @@ def plot_mapbox(dateidx, language, city, type_inc, gun):
         Input("types_inc", "value"),
         Input("guns", "value"),
         Input("main_graph", "clickData"),
+        Input("filter_top_rows", "value"),
+
     ],
     # [State("main_graph", "clickData"),
     #  State("hour-chart", "clickData"),
     #  State("type-chart", "clickData")     ],
 )
-def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick):
+def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, top_n):
     def return_response_table(dff):
         data = dff[table_columns]
         data = data.to_dict('records')
@@ -133,7 +139,7 @@ def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick):
         dfff=dff[ (dff['osm_lon'] == mapclick['points'][0]['lon'])&(dff['osm_lat'] == mapclick['points'][0]['lat'])]
     else:
         dfff=dff
-    return return_response_table(dfff)
+    return return_response_table(dfff.head(min(top_n, len(dfff))))
 
 @app.callback(
     Output("type-chart", "figure"),
@@ -239,7 +245,7 @@ types = ['All']+sorted(df['type'].unique())
 languages = sorted(df['language'].unique())
 gun_filters = ['All']+sorted(df['gun_filter'].unique())
 
-
+options_rows = get_options(list(np.arange(100, int(len(df)/2), 100))+[int(len(df)/2)])
 city_options = get_options(cities)
 language_options=get_options(languages)
 type_options=get_options(types)
@@ -295,11 +301,39 @@ row_map=html.Div([
             [
                 dbc.Col(html.Div(
                     [   #html.Div(id='main_graph_dummy', children=None, n_click=None),
+                        html.H6(
+                            id='text_total_rows',
+                            #children=f"""
+                            #Total {int(len(df)/2)} incidents reported in Sweden.
+                            #""",
+                            style={"margin-bottom": "10px"},
+                        ),
                         dcc.Graph(id="main_graph")
                     ]
                 ), lg=6),
                 dbc.Col(html.Div(
                     [
+                        ###
+                        html.H6(
+                            id='top_rows',
+                            children=f"""
+                            View top n incidents reported. 
+                            """,
+                            style={"margin-bottom": "10px"},
+                        ),
+
+                        dcc.Dropdown(
+                            id="filter_top_rows",
+                            options=options_rows,
+                            multi=False,
+                            value=100,
+                            className="dcc_control",
+                            style={"margin-bottom": "10px"}),
+
+
+
+
+                        ###
                         dash_table.DataTable(
                         id='main_table',
                         style_data={
@@ -307,7 +341,7 @@ row_map=html.Div([
                             'height': 'auto',
                         },
                         style_table={
-                            'height': 500,
+                            'height': 450,
                             'textAlign': 'left',
                             'overflowY': 'scroll'
                         },
