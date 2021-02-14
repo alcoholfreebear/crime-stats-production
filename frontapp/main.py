@@ -109,14 +109,14 @@ def plot_mapbox(dateidx, language, city, type_inc, gun):
         Input("types_inc", "value"),
         Input("guns", "value"),
         Input("main_graph", "clickData"),
-        Input("filter_top_rows", "value"),
+        #Input("filter_top_rows", "value")
 
     ],
     # [State("main_graph", "clickData"),
     #  State("hour-chart", "clickData"),
     #  State("type-chart", "clickData")     ],
 )
-def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, top_n):
+def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick):
     def return_response_table(dff):
         data = dff[table_columns]
         data = data.to_dict('records')
@@ -139,7 +139,7 @@ def filter_tables_mapclick(dateidx, language, city, type_inc, gun, mapclick, top
         dfff=dff[ (dff['osm_lon'] == mapclick['points'][0]['lon'])&(dff['osm_lat'] == mapclick['points'][0]['lat'])]
     else:
         dfff=dff
-    return return_response_table(dfff.head(min(top_n, len(dfff))))
+    return return_response_table(dfff)
 
 @app.callback(
     Output("type-chart", "figure"),
@@ -313,22 +313,22 @@ row_map=html.Div([
                 ), lg=6),
                 dbc.Col(html.Div(
                     [
-                        ###
+                        ##
                         html.H6(
                             id='top_rows',
                             children=f"""
-                            View top n incidents reported. 
+                            
                             """,
-                            style={"margin-bottom": "10px"},
+                            style={"margin-bottom": "28px"},
                         ),
-
-                        dcc.Dropdown(
-                            id="filter_top_rows",
-                            options=options_rows,
-                            multi=False,
-                            value=100,
-                            className="dcc_control",
-                            style={"margin-bottom": "10px"}),
+                        #
+                        # dcc.Dropdown(
+                        #     id="filter_top_rows",
+                        #     options=options_rows,
+                        #     multi=False,
+                        #     value=100,
+                        #     className="dcc_control",
+                        #     style={"margin-bottom": "10px"}),
 
 
 
@@ -341,7 +341,7 @@ row_map=html.Div([
                             'height': 'auto',
                         },
                         style_table={
-                            'height': 450,
+                            'height': 500,
                             'textAlign': 'left',
                             'overflowY': 'scroll'
                         },
