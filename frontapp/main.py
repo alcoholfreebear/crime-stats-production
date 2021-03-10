@@ -383,7 +383,7 @@ row_top = html.Div(
                         html.H6(
                             id='subtitle-timestamp',
                             children=f"""
-                            Crime and incidents reports from the swedish police API, last updated {last_updated}.
+                            Incidents reports from the swedish police API, last updated {last_updated}.
                             """,
                             style={"margin-bottom": "0px"},
                         ),
