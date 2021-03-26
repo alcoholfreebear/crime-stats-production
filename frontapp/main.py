@@ -403,7 +403,7 @@ row_top = html.Div(
                             id="languages",
                             options=language_options,
                             multi=False,
-                            value="EN",
+                            value="SV",
                             className="dcc_control",
                             style={"margin-bottom": "20px"}),
                     ]
