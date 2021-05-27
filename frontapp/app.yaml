@@ -8,7 +8,7 @@ automatic_scaling:
   max_idle_instances: 1
   target_cpu_utilization: 0.85
   max_concurrent_requests: 80
-  max_pending_latency: 6s
+  max_pending_latency: 10s
 default_expiration: "1m"
 
 inbound_services:
