@@ -1,0 +1,14 @@
+service: cron
+runtime: python37
+instance_class: F4
+env: standard
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1
+
+handlers:
+- url: /raw
+  script: auto
+
+#- url: /translate
+#  script: auto

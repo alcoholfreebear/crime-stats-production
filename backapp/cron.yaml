@@ -1,0 +1,13 @@
+cron:
+- description: "crime statistics etl job"
+  target: cron
+  url: /raw
+  schedule: every 12 hours
+#- description: "crime statistics translate job"
+#  target: cron
+#  url: /translate
+#  schedule: every 6 hours
+#  retry_parameters:
+#    job_age_limit: 6h
+#    min_backoff_seconds: 600
+#    max_doublings: 4
