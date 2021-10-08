@@ -1,5 +1,36 @@
 steps:
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'bash'
-  args: ['-c', 'gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy frontapp/ --version v1']
-timeout: '1600s'
+  # Install dependencies
+  - name: python3.7
+    entrypoint: pip
+    args: ["install", "-r", "./frontapp/requirements.txt", "--user"]
+
+#  # Run unit tests
+#  - name: python
+#    entrypoint: python
+#    args: ["-m", "pytest", "--junitxml=${SHORT_SHA}_test_log.xml"]
+
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t',
+           'gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA', './frontapp/']
+
+  # Docker push to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push',  'gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA']
+
+  # Deploy to Cloud Run
+  - name: google/cloud-sdk
+    args: ['gcloud', 'run', 'deploy', 'crimemap',
+           '--image=gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA',
+           '--region', 'europe-west1', '--platform', 'managed',
+           '--allow-unauthenticated']
+#
+## Save test logs to Google Cloud Storage
+#artifacts:
+#  objects:
+#    location: gs://$_BUCKET_NAME/
+#    paths:
+#      - ${SHORT_SHA}_test_log.xml
+# Store images in Google Artifact Registry
+images:
+  - gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA
