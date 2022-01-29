@@ -38,15 +38,19 @@ def get_options(arr):
         arr=['All']+arr
     return [{"label": x, "value": x} for x in arr]
 
-def get_map_agg(df, city:str=None):
+def get_map_agg(df:pd.DataFrame, city:str=None, city_0:pd.DataFrame=None):
+    add_marker = True
     if city!='All':
+        if df.empty:
+            df=city_0
+            add_marker = False
         dfc=df[df['city']==city].copy().iloc[0]
         centering = {'lat': dfc.get('gps_lat'), 'lon': dfc.get('gps_lon')}
     else:
         centering={'lat': 60, 'lon': 18}
     df_plot = df.groupby(['osm_lat', 'osm_lon', 'city'], as_index=False)[['id']].count().rename(
         columns={'id': 'incident counts','osm_lat':'lat', 'osm_lon':'lon'})
-    df_plot['marker_size'] = np.round(np.log2(df_plot['incident counts'] + 1), decimals=2)
+    df_plot['marker_size'] = np.round(np.log2(df_plot['incident counts'] + 1), decimals=2) if add_marker else 0
     return df_plot, centering
 
 
@@ -62,8 +66,8 @@ def get_map_agg(df, city:str=None):
         Input("types_inc", "value"),
         Input("guns", "value"),
     ],
-    #[State("lock_selector", "value"), State("main_graph", "relayoutData")],
-)
+    # [ State("lock_selector", "value"), State("main_graph", "relayoutData")],
+    )
 def plot_mapbox(dateidx, language, city, type_inc, gun):
     min_idx, max_idx = dateidx
     min_date, max_date = date_range[min_idx], date_range[max_idx]
@@ -78,7 +82,8 @@ def plot_mapbox(dateidx, language, city, type_inc, gun):
              & (df['incident_type'].isin(type_inc))
              & (df['gun_filter'].isin(gun))
              ].copy()
-    map_agg, centering =get_map_agg(df=dff, city=city)
+    city_0 = df[(df['city'].isin(cities_loc))].iloc[[0]]
+    map_agg, centering =get_map_agg(df=dff, city=city, city_0=city_0)
     zoom=4.5 if city=='All' else 10
     px.set_mapbox_access_token(token=mapbox_access_token)
     fig = px.scatter_mapbox(map_agg, lat='lat', lon='lon', center=centering,
