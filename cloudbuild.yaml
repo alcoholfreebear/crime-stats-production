@@ -23,7 +23,7 @@ steps:
     args: ['gcloud', 'run', 'deploy', 'crimemap',
            '--image=gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA',
            '--region', 'europe-west1', '--platform', 'managed',
-           '--allow-unauthenticated']
+           '--allow-unauthenticated', --min-instances, '1']
 #
 ## Save test logs to Google Cloud Storage
 #artifacts:
