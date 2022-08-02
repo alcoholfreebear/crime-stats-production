@@ -36,8 +36,14 @@ Source codes in `backapp` folder.
 Main logics in `backapp/main.py` (the flask app) and `backapp/operations.py`:
 1. Request high level crime report json data from https://polisen.se/api/events. 
 2. Parse the json data and then scrape the webpage in "url" field for crime report details. For example information in this [web page](https://polisen.se/aktuellt/handelser/2022/augusti/2/02-augusti-0912-trafikolycka-hogsby/).
-3. Grab street and city names from the detail data and request the latitude and longitude using mapbox API.
-4. Translate the details data into English.
+3. Grab street and city names from the detail data and request the latitude and longitude using [Open Street Map](https://www.openstreetmap.org/), by for example requesting the following python "fstring":
+
+```python
+f"https://nominatim.openstreetmap.org/search/405 {search_term}?format=json&limit=1"
+```
+Where `search_term` variable is the street and city names. 
+
+4. Translate the details data into English using [Google Translate API](https://cloud.google.com/translate/).
 5. Combine all the information into a dataframe and push to Google Cloud BigQuery and google cloud storage bucket as parquet file. 
 
 ## Deployment
@@ -60,7 +66,7 @@ Source codes in `frontapp` folder.
 
 Main logic: 
 1. Read data from Google Cloud storage bucket. See `frontapp/app_data.py`. 
-2. Get map data form mapbox API and other data processing steps. See `frontapp/app_func.py`.
+2. Get map data form [Mapbox API](https://docs.mapbox.com/api/overview/) and other data processing steps. See `frontapp/app_func.py`.
 3. Visualize data interactively using dash and plotly in `frontapp/main.py`.   
 
 ## Deployment
