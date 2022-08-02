@@ -12,16 +12,16 @@ steps:
   # Docker Build
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t',
-           'gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA', './frontapp/']
+           'gcr.io/$PROJECT_ID/cloudrun/crimemap:$SHORT_SHA', './frontapp/']
 
   # Docker push to Google Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push',  'gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA']
+    args: ['push',  'gcr.io/$PROJECT_ID/cloudrun/crimemap:$SHORT_SHA']
 
   # Deploy to Cloud Run
   - name: google/cloud-sdk
     args: ['gcloud', 'run', 'deploy', 'crimemap',
-           '--image=gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA',
+           '--image=gcr.io/$PROJECT_ID/cloudrun/crimemap:$SHORT_SHA',
            '--region', 'europe-west1', '--platform', 'managed',
            '--allow-unauthenticated', --min-instances, '1']
 #
@@ -33,4 +33,4 @@ steps:
 #      - ${SHORT_SHA}_test_log.xml
 # Store images in Google Artifact Registry
 images:
-  - gcr.io/my-user-project-287504/cloudrun/crimemap:$SHORT_SHA
+  - gcr.io/$PROJECT_ID/cloudrun/crimemap:$SHORT_SHA
