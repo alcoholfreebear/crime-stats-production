@@ -281,7 +281,7 @@ df["gun_filter"] = np.where(
 )
 
 date_range_ms = pd.date_range(
-    start=datetime(2020, 10, 1), end=datetime.today(), freq="MS"
+    start=datetime(2020, 10, 1), end=datetime.today(), freq="3MS"
 )
 date_range = pd.date_range(
     start=datetime(2020, 10, 1), end=datetime.today() + pd.Timedelta(days=1)
